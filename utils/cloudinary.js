@@ -1,6 +1,7 @@
 import dataUriParser from 'datauri/parser.js';
 import path from 'path'
 import cloudinary from 'cloudinary';
+import ErrorHandler from './ErrorHandler.js';
 export const upload = async(file,next)=>{
     const data_uri = getUri(file);
     let myCloud;
@@ -9,7 +10,7 @@ export const upload = async(file,next)=>{
         return myCloud.url;
     } catch (error) {
         console.log(error);
-        return next(new ErrorHandler(error.message,500));
+      throw new Error(error.message);
     }
 }
 const getUri = (file)=>{

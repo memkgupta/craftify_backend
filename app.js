@@ -1,10 +1,11 @@
+import 'dotenv/config'
 import express, { json } from 'express';
 import errorMiddleware from './middlewares/error.js';
 import userRoutes from './routes/userRoutes.js';
-import { connect } from './utils/db.js';
-import config from './config/config.js'
-require('dotenv').config();
+import connect from './utils/db.js';
+import * as config from './config/config.js'
 
+import cloudinary from 'cloudinary'
 const app = express();
 const PORT = process.env.PORT || 3000;
 cloudinary.config({ 
@@ -16,7 +17,7 @@ cloudinary.config({
 app.use(json());
 
 // Routes
-app.use('/users', userRoutes);
+app.use('/api/v1/users', userRoutes);
 
 // Connect to database
 connect();

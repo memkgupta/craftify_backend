@@ -7,4 +7,4 @@ const connect = () => {
     .catch(err => console.error('Database connection error: ', err));
 };
 
-export default { connect };
+export default connect;
