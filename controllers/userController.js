@@ -94,6 +94,7 @@ export const updateUser = async(req,res,next)=>{
     }
     if(email) userUpdate.email = email;
     await userUpdate.save()
+    res.status(200).json({success:true,message:"User updates successfully"})
   } catch (error) {
     console.log(error);
     return next(new ErrorHandler("Some error occured",500));

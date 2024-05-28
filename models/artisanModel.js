@@ -37,6 +37,7 @@ const artisanSchema = new mongoose.Schema({
       trim: true,
     },
   },
+  isVerified:{type:Boolean,default:false},
   email:{type:String,required:true,unique:true},
   bio: String,
   profile_image: String,

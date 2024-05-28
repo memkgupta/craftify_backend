@@ -18,3 +18,13 @@ const getUri = (file)=>{
     const extname = path.extname(file.originalname);
     return parser.format(extname,file.buffer);
 }
+
+
+export const uploadMultipleFiles = async(file)=>{
+    const data_uri = getUri(file);
+    try {
+        return cloudinary.v2.uploader.upload(data_uri.content);
+    } catch (error) {
+        throw new Error(error)
+    }
+}

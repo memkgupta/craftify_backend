@@ -4,7 +4,7 @@ import errorMiddleware from './middlewares/error.js';
 import userRoutes from './routes/userRoutes.js';
 import connect from './utils/db.js';
 import * as config from './config/config.js'
-
+import artistRoutes from './routes/artistRoutes.js'
 import cloudinary from 'cloudinary'
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,7 +18,7 @@ app.use(json());
 
 // Routes
 app.use('/api/v1/users', userRoutes);
-
+app.use('/api/v1/artists',artistRoutes)
 // Connect to database
 connect();
 app.use(errorMiddleware)
