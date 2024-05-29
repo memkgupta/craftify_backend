@@ -37,9 +37,11 @@ const artisanSchema = new mongoose.Schema({
       trim: true,
     },
   },
+  ratings:{type:Number},
   isVerified:{type:Boolean,default:false},
   email:{type:String,required:true,unique:true},
   bio: String,
+  art_type:{type:mongoose.Schema.Types.ObjectId,ref:'ArtType'},
   profile_image: String,
   images:{type:[String],validate:{
     validator:(arr)=>{

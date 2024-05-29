@@ -5,6 +5,7 @@ const orderItemSchema = new mongoose.Schema({
   product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   quantity: Number,
   price: Number,
+  date:{type:String,required:true}
 }, { timestamps: true });
 
 const OrderItem = mongoose.model('OrderItem', orderItemSchema);
