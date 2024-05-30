@@ -8,6 +8,7 @@ import Category from "../models/categoryModel.js"
 import ProductImage from "../models/productImageModel.js";
 import {stringToDate} from "../utils/helper.js"
 import Order from "../models/orderModel.js";
+import mongoose from "mongoose";
 export const registerAsArtisan = async(req,res,next)=>{
  let {
     shop_name,shop_address,bio
@@ -139,13 +140,25 @@ res.status(200).json({success:true,message:"Product added successfully",pid:prod
 }
 export const updateProduct = async(req,res,next)=>{
 const pid = req.params.id;
-const updateType = req.query.ut;
+// const updateType = req.query.ut;
 const {error} = validProductUpdateRequest(req.body);
-if(error&&updateType!="img"){
+if(error){
   return next(new ErrorHandler(error.message,401));
 }
-
-const product = await Product.find
+const {name,description,price,stock_quantity} = req.body;
+// currently only info update
+const product = await Product.findById(pid);
+if(name) product.name = name;
+if(description) product.description = description;
+if(price) product.price = Number(price);
+if(stock_quantity) product.stock_quantity = stock_quantity;
+try {
+  await product.save();
+} catch (error) {
+  console.log(error);
+  return next(new ErrorHandler("Some error occured",500))
+}
+res.status(200).json({success:true,message:"Product updated successfully"})
 }
 export const searchArtisan = async(req,res,next)=>{
 const {keyword,location,ratings,art_type} = req.query;
@@ -264,7 +277,7 @@ console.log(totalResults);
     const orders  = await Order.aggregate([
       {$match:filters.length?{$and:filters}:{}},
       {$lookup:{
-        from:"OrderItem",
+        from:"orderitems",
         localField:"_id",
         foreignField:"order_id",
         as:"item"
@@ -311,4 +324,61 @@ console.log(totalResults);
    }
 
 }
+export const getProducts = async(req,res,next)=>{
+  try {
+   
+    const page = req.query.page;
+  const artisan = await Artisan.findById(req.artisanAccount._id);
+  
+  const products = await Product.find({artisan_id:artisan._id}).skip((page-1)*10).limit(10);
+  res.status(200).json({success:true,products:products,totalResults:products.length});
+  } catch (error) {
+    console.log(error)
+    return next(new ErrorHandler("Some error occured",500))
+  }
+}
+export const getProductDetails = async(req,res,next)=>{
+  const artisan = await Artisan.findById(req.artisanAccount._id);
+  if(!artisan){
+    return next(new ErrorHandler("Bad request",403))
+  }
+  const pid = req.params.id;
+  const product = await Product.findById(pid)
+ try {
+  const data = await Product.aggregate([
+    {$match:{
+      "_id":pid
+    }},
+    {$lookup:{
+      from:"orderitems",
+      localField:"_id",
+      foreignField:"product_id",
+      as:"orders"
+    }},
+    {
+$unwind:"$orders"
+    },
+    {
+      $group: {
+        _id: {$first:"$_id"},
+        // name:{$first:"$name"},
+        // price:{$first:"$price"},
+        
+        // stock_quantity:{$first:"$stock_quantity"},
+        // date: { $first: "$orders.date" },
+        total_quantity: { $sum: "$orders.quantity" }
+      }
+    },
+    {
+      $project:{
+        total_quantity:1
+      }
+    }
+  ])
 
+  res.status(200).json({success:true,product:product,data:data});
+ } catch (error) {
+  console.log(error)
+  return next(new ErrorHandler("Some error occured",500))
+ }
+}

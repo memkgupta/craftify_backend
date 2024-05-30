@@ -110,8 +110,8 @@ const validArtisanUpdateRequest = (data)=>{
 const validAddProductRequest = (data)=>{
   const schema = Joi.object({
     category_id:Joi.string().required(),
-    name:Joi.string().max('50').min(10).required(),
-    description:Joi.string().min(200).max(500).required(),
+    name:Joi.string().max(50).min(10).required(),
+    description:Joi.string().min(1000).max(10000).required(),
     price:Joi.number().min(100).max(9999),
     stock_quantity:Joi.number().min(1).required()
   });
@@ -119,8 +119,8 @@ const validAddProductRequest = (data)=>{
 }
 const validProductUpdateRequest = (data)=>{
   const schema = Joi.object({
-    name:Joi.string().max('50').min(10),
-    description:Joi.string().min(200).max(500),
+    name:Joi.string().max(50).min(10),
+    description:Joi.string().min(2000).max(10000),
     price:Joi.number().min(100).max(9999),
     stock_quantity:Joi.number().min(1)
   })

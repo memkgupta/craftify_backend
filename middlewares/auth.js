@@ -2,6 +2,7 @@ import User from "../models/userModel.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import jwt from 'jsonwebtoken'
  const auth = async function (req, res, next) {
+
     // Get token from the request header
     const header = req.header('Authorization');
   

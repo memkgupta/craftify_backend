@@ -2,11 +2,15 @@ import Artisan from "../models/artisanModel.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 
 const artisanAuth = async(req,res,next)=>{
+
     const userId = req.user._id;
     try {
         const artisan = await Artisan.findOne({user_id:userId});
         if(!artisan){
             return next(new ErrorHandler("No artisan registered",401));
+        }
+        if(!artisan.isVerified){
+            return next(new ErrorHandler("Not verified yet",401))
         }
         req.isArtisan = true;
         req.artisanAccount = artisan;
