@@ -126,6 +126,48 @@ const validProductUpdateRequest = (data)=>{
   })
   return schema.validate(data);
 }
+const validCreateOrderRequest = (data)=>{
+  const orderItemSchema = Joi.object({
+    p_id:Joi.string().required(),
+    qty:Joi.number().min(1)
+  });
+  const addressSchema = Joi.object({
+    street: Joi.string().trim().required().messages({
+      'string.base': 'Street address should be a string',
+      'string.empty': 'Street address is required',
+      'any.required': 'Street address is required',
+    }),
+    city: Joi.string().trim().required().messages({
+      'string.base': 'City should be a string',
+      'string.empty': 'City is required',
+      'any.required': 'City is required',
+    }),
+    state: Joi.string().trim().required().messages({
+      'string.base': 'State should be a string',
+      'string.empty': 'State is required',
+      'any.required': 'State is required',
+    }),
+    postalCode: Joi.string().trim().required().pattern(/^\d{6}$/).messages({
+      'string.base': 'Postal code should be a string',
+      'string.empty': 'Postal code is required',
+      'any.required': 'Postal code is required',
+      'string.pattern.base': 'Postal code is not valid',
+    }),
+    country: Joi.string().trim().required().messages({
+      'string.base': 'Country should be a string',
+      'string.empty': 'Country is required',
+      'any.required': 'Country is required',
+    }),
+  });
+  const schema = Joi.object({
+    address:addressSchema.required(),
+    artisan_id:Joi.string().required(),
+    date:Joi.date(),
+    payment_method:Joi.string().required().valid('COD','UPI','CARD'),
+    items:Joi.array().items(orderItemSchema)
+  })
+  return schema.validate(data);
+}
 export {validUserUpdateRequest,validPasswordUpdateRequest,validResetPasswordRequest,validArtisanRegisterRequest,validArtisanUpdateRequest,
-  validAddProductRequest,validProductUpdateRequest
+  validAddProductRequest,validProductUpdateRequest,validCreateOrderRequest
 }
