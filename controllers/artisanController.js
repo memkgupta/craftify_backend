@@ -127,8 +127,8 @@ if(!req.files||req.files.size<3){
    const fileUploadPromises = req.files.map(file=>uploadMultipleFiles(file))
 const results =  await Promise.all(fileUploadPromises)
 results.forEach(async(item)=>{
-  const image = await ProductImage.create({product_id:product._id,image_url:item.url})
-   images.push(image);
+  // const image = await ProductImage.create({product_id:product._id,image_url:item.url})
+   images.push(item.url);
 })
 product.images = images;
 await product.save();
@@ -347,7 +347,7 @@ export const getProductDetails = async(req,res,next)=>{
  try {
   const data = await Product.aggregate([
     {$match:{
-      "_id":pid
+      "_id":product._id
     }},
     {$lookup:{
       from:"orderitems",
@@ -360,23 +360,19 @@ $unwind:"$orders"
     },
     {
       $group: {
-        _id: {$first:"$_id"},
-        // name:{$first:"$name"},
-        // price:{$first:"$price"},
-        
-        // stock_quantity:{$first:"$stock_quantity"},
-        // date: { $first: "$orders.date" },
-        total_quantity: { $sum: "$orders.quantity" }
+        _id: "$_id",
+       
+        total_orders: { $sum: "$orders.quantity" }
       }
     },
-    {
-      $project:{
-        total_quantity:1
-      }
-    }
+   {$project:{
+    _id:0,
+    total_orders:1
+   }},
+   
   ])
 
-  res.status(200).json({success:true,product:product,data:data});
+  res.status(200).json({success:true,product:product,stats:data[0]});
  } catch (error) {
   console.log(error)
   return next(new ErrorHandler("Some error occured",500))

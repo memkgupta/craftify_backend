@@ -26,26 +26,29 @@ const order = await Order.create({
     paymentMethod:payment_method,
     address:address
 });
-let total_amount = 0;
-let orderItems = []
-items.forEach(async(item) => {
+var total_amount ;
+const orderItems = []
+total_amount = 0;
+for(const item of items){
     const product = await Product.findById(item.p_id);
-    if(!product){
-        await order.deleteOne();
-        return next(new ErrorHandler("Bad request invalid product",401));
-    }
-    total_amount += product.price*item.qty;
-  const orderItem =   await OrderItem.create({
-        order_id:order._id,
-        product_id:product._id,
-        quantity:item.qty,
-        price:product.price,
-        date:date,
-    })
-    orderItems.push({name:product.name,quantity:item.qty});
-});
+        if(!product){
+            await order.deleteOne();
+            return next(new ErrorHandler("Bad request invalid product",401));
+        }
+        total_amount += product.price*item.qty;
+      const orderItem =   await OrderItem.create({
+            order_id:order._id,
+            product_id:product._id,
+            quantity:item.qty,
+            price:product.price,
+            date:date,
+        })
+        orderItems.push({name:product.name,quantity:item.qty});
+}
+
 order.total_amount = total_amount;
 order.items = orderItems;
+
 await order.save();
 res.status(200).json({success:true,message:"Order created complete payment",order_id:order._id});
 }
@@ -72,4 +75,87 @@ res.status(200).json({success:true,message:"Order placed successfully",order_id:
     else{
         return next(new ErrorHandler("Payment not completed yet",403));
     }
+}
+export const getOrderDetails = async(req,res,next)=>{
+    const order_id = req.query.oid;
+    const order = await Order.findById(order_id);
+    if(!order){
+        return next(new ErrorHandler("Order not found",401));
+    }
+ try {
+
+    const order_data = await Order.aggregate([
+        {
+            $match:{
+                _id:order._id,
+                // status: {
+                //     $in: [ 'processing', 'shipped', 'delivered', 'cancelled'],
+                //     $ne: "pending"
+                //   }
+            }
+        },
+        {$lookup:{
+            from:"payments",
+            localField:"payment_id",
+            foreignField:"_id",
+            as:"payment_details"
+        }},
+        {
+            $lookup:{
+                from:"orderitems",
+                foreignField:"order_id",
+                localField:"_id",
+                as:"item"
+            }
+        },
+       
+        {$unwind:"$item"},
+        {$lookup:{
+            from:"products",
+            localField:"item.product_id",
+            foreignField:"_id",
+            as:"product"
+        }},
+        {$project:{
+            total_amount:1,
+            date:1,
+           
+            status:1,
+            "item.quantity":1,
+            "item.product":{
+                product_name:{$first:"$product.name"},
+                product_id:{$first:"$product._id"},
+                product_image:{$arrayElemAt:["$product.images",0]}
+            }
+        }},
+        {$group:{
+            _id:"$_id",
+            orderitems:{
+                $push:"$item"
+            },
+            total_amount:{$first:"$total_amount"},
+            date:{$first:"$date"},
+            
+
+            status:{$first:"$status"}
+            
+        }},
+        {$project:{
+           
+          orderitems:1,
+          total_amount:1,
+          status:1,
+          date:1
+        }}
+    ]) ;
+    res.status(200).json({success:true,data:order_data[0]});
+ } catch (error) {
+    console.log(error);
+    return next(new ErrorHandler("Some error occured",500))
+ }
+
+}
+
+export const orderCancellationRequest = async(req,res,next)=>{
+    
 }

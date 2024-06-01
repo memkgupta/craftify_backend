@@ -6,7 +6,7 @@ const productSchema = new mongoose.Schema({
   name: String,
   isTrashed:{type:Boolean,default:false},
   description: String,
-  images:[{type:mongoose.Schema.Types.ObjectId,ref:'ProductImage'}],
+  images:[{type:String}],
   price: Number,
   stock_quantity: Number,
 }, { timestamps: true });

@@ -6,6 +6,7 @@ import connect from './utils/db.js';
 import * as config from './config/config.js'
 import artistRoutes from './routes/artistRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import orderRoutes from './routes/orderRoutes.js'
 import cloudinary from 'cloudinary'
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use(json());
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/artists',artistRoutes)
 app.use('/api/v1/admin',adminRoutes)
+app.use('/api/v1/order',orderRoutes);
 // Connect to database
 connect();
 app.use(errorMiddleware)
