@@ -93,3 +93,27 @@ Your Company Name`,
         return {info:null,error:error};
       }
 };
+export const sendOrderCancelledEmail = async (userEmail, orderDetails) => {
+  const mailOptions = {
+    from:`"Craftify" <${process.env.MAIL}>`, // sender address
+    to: userEmail,         // Receiver's email address
+      subject: 'Your Orderitem Has Been cancelled',
+      text: `Dear Customer,
+
+      We have received your request to cancel order-item #${orderDetails._id} #${orderDetails.name}. Your order has been successfully canceled. If you have any further questions or need assistance, please feel free to contact our support team.
+      
+      Thank you for shopping with us.
+      
+      Best regards,
+      Your Company Name`
+  };
+
+  try {
+      const info =  await transport.sendMail(mailOptions);
+      console.log('Email sent: ' + info.response);
+      return {info:info,error:null};
+    } catch (error) {
+      console.error('Error sending email:', error);
+      return {info:null,error:error};
+    }
+};

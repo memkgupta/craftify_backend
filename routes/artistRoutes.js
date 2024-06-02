@@ -3,7 +3,7 @@ const router = Router();
 
 import { multipleUpload } from '../middlewares/multer.js';
 import auth from '../middlewares/auth.js';
-import { addProduct, getArtisan, getOrders, getProductDetails, getProducts, registerAsArtisan, trashProduct, updateProduct } from '../controllers/artisanController.js';
+import { addProduct, approveCancellation, getArtisan, getCancellationRequests, getOrders, getProductDetails, getProducts, registerAsArtisan, trashProduct, updateProduct } from '../controllers/artisanController.js';
 import artisanAuth from '../middlewares/artisanAuth.js';
 
 
@@ -17,5 +17,6 @@ router.get("/product/details/:id",auth,artisanAuth,getProductDetails)
 router.delete('/product/trash/:id',auth,artisanAuth,trashProduct);
 router.get('/orders',auth,artisanAuth,getOrders)
 router.get('/products',auth,artisanAuth,getProducts);
-
+router.get('/orders/cancel/all',auth,artisanAuth,getCancellationRequests)
+router.get('/orders/cancel/approve',auth,artisanAuth,approveCancellation)
 export default router;

@@ -6,6 +6,7 @@ import OrderItem from "../models/orderItem.model.js";
 import Product from "../models/productModel.js"
 import Payment from "../models/paymentModel.js";
 import { sendOrderPlacedEmail } from "../utils/mail.js";
+import CancellationRequest from "../models/orderCancellationModel.js";
 export const createOrder = async(req,res,next)=>{
     
     const {error} = validCreateOrderRequest(req.body);
@@ -66,6 +67,10 @@ export const completeOrder = async(req,res,next)=>{
 order.payment_id =payment._id;
 order.status = 'processing'
 await order.save();
+const orderItems = await OrderItem.find({order_id:order._id});
+for(const item of orderItems){
+    await Product.findByIdAndUpdate(item.product_id,{$inc:{stock_quantity:-1*item.quantity}})
+;}
 // await sendOrderPlacedMail()
 if(req.user.email){
     await sendOrderPlacedEmail(req.user.email)
@@ -155,7 +160,24 @@ export const getOrderDetails = async(req,res,next)=>{
  }
 
 }
-
 export const orderCancellationRequest = async(req,res,next)=>{
+   const order_item_id = req.query.oid;
+   const {reason,date} = req.body;
+   const orderItem = await OrderItem.findById(order_item_id).populate('product_id');
+   
+   if(!orderItem){
+    return next(new ErrorHandler("Order item not found",401));
+   } 
+   const cancellationRequest = await CancellationRequest.create({
+    user_id:req.user._id,
+    order_id:orderItem.order_id,
+    order_item_id:orderItem._id,
+    artisan_id:orderItem.product_id.artisan_id,
+    reason:reason,
+    date:date
+   }); 
+   res.status(200).json({success:true,message:"Cancellation request has been submitted , will update you"});
+}
+export const returnItems = async(req,res,next)=>{
     
 }

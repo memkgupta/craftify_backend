@@ -9,6 +9,10 @@ import ProductImage from "../models/productImageModel.js";
 import {stringToDate} from "../utils/helper.js"
 import Order from "../models/orderModel.js";
 import mongoose from "mongoose";
+import CancellationRequest from "../models/orderCancellationModel.js";
+import { sendOrderCancelledEmail } from "../utils/mail.js";
+import OrderItem from "../models/orderItem.model.js";
+import ReturnRequest from "../models/returnRequest.js"
 export const registerAsArtisan = async(req,res,next)=>{
  let {
     shop_name,shop_address,bio
@@ -377,4 +381,48 @@ $unwind:"$orders"
   console.log(error)
   return next(new ErrorHandler("Some error occured",500))
  }
+}
+export const getCancellationRequests = async(req,res,next)=>{
+  const {page,limit=10} = req.query;
+  const requests = await CancellationRequest.find({artisan_id:req.artisanAccount._id}).populate('order_id').limit(limit).skip((page-1)*limit);
+  res.status(200).json({success:true,requests:requests});
+
+}
+export const approveCancellation = async(req,res,next)=>{
+  const {rid,date} = req.body;
+  const request  = await CancellationRequest.findById(rid).populate('user_id');
+  if(!request){
+    return next(new ErrorHandler("No request found",401));
+  }
+  if(!request.artisan_id==req.artisanAccount._id){
+    return next(new ErrorHandler("Bad request",403));
+  }
+  request.status = 'approved';
+
+    const orderItem = await OrderItem.findById(request.order_item_id);
+    orderItem.status="cancelled";
+    await orderItem.save();
+    const productUpdate = await Product.findByIdAndUpdate(orderItem.product_id,{$inc:{stock_quantity:orderItem.quantity}});
+    
+    const updatedOrderItems = await OrderItem.find({order_id:orderItem.order_id});
+    if(updatedOrderItems<1){
+      await Order.findByIdAndUpdate(orderItem.order_id,{$set:{status:"cancelled"},$inc:{total_amount:productUpdate.price}});
+    }
+    if(request.user_id.email){
+      await sendOrderCancelledEmail(request.user_id.email,{_id:orderItem._id,name:productUpdate.name})
+    }
+    const order = await Order.findById(orderItem._id);
+  
+    const orderItems = []
+    orderItems.push(orderItem._id);
+    await ReturnRequest.create({
+      request_id:request._id,
+      order_id:order._id,
+      items:orderItems,
+      artisan_id:request.artisan_id,
+      status:"pickedup"
+    })
+   
+
+  res.status(200).json({success:true,message:"Cancellation request accepted"})
 }
