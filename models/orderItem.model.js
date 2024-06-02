@@ -5,7 +5,7 @@ const orderItemSchema = new mongoose.Schema({
   product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   quantity: Number,
   price: Number,
-  status:{type:String,enum:["delivered","cancelled"]},
+  status:{type:String,enum:["pickedup","delivered","cancelled","arrived at center","dispatched"]},
   date:{type:String,required:true}
 }, { timestamps: true });
 

@@ -7,6 +7,7 @@ import Product from "../models/productModel.js"
 import Payment from "../models/paymentModel.js";
 import { sendOrderPlacedEmail } from "../utils/mail.js";
 import CancellationRequest from "../models/orderCancellationModel.js";
+import { initiateDelivery } from "./deliveryController.js";
 export const createOrder = async(req,res,next)=>{
     
     const {error} = validCreateOrderRequest(req.body);
@@ -71,11 +72,12 @@ const orderItems = await OrderItem.find({order_id:order._id});
 for(const item of orderItems){
     await Product.findByIdAndUpdate(item.product_id,{$inc:{stock_quantity:-1*item.quantity}})
 ;}
-// await sendOrderPlacedMail()
+const items = orderItems.map(item=>item._id);
+const delivery = await initiateDelivery(order,items)
 if(req.user.email){
     await sendOrderPlacedEmail(req.user.email)
 }
-res.status(200).json({success:true,message:"Order placed successfully",order_id:order._id});
+res.status(200).json({success:true,message:"Order placed successfully",order_id:order._id,tracking_id:delivery._id});
     }
     else{
         return next(new ErrorHandler("Payment not completed yet",403));
@@ -179,5 +181,5 @@ export const orderCancellationRequest = async(req,res,next)=>{
    res.status(200).json({success:true,message:"Cancellation request has been submitted , will update you"});
 }
 export const returnItems = async(req,res,next)=>{
-    
+
 }
