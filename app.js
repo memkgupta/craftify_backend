@@ -7,6 +7,7 @@ import * as config from './config/config.js'
 import artistRoutes from './routes/artistRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
+import cartRoutes from './routes/cartRoutes.js'
 import cloudinary from 'cloudinary'
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/artists',artistRoutes)
 app.use('/api/v1/admin',adminRoutes)
 app.use('/api/v1/order',orderRoutes);
+app.use('/api/v1/cart',cartRoutes)
 // Connect to database
 connect();
 app.use(errorMiddleware)

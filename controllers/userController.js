@@ -15,7 +15,6 @@ const getAllUsers = async (req, res) => {
   //     res.status(500).json({ message: err.message });
   //   }
 };
-
 export const createUser = async (req, res, next) => {
   const { password, phone, full_name } = req.body;
  let profile_url = "https://res.cloudinary.com/de4ix6d6g/image/upload/v1716056171/uvdcer6yk88us5emowbi.png";
